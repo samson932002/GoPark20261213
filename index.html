@@ -70,7 +70,7 @@
       <div class="fact"><b>日期 DATE</b><span>12月13日（日）</span></div>
       <div class="fact"><b>時間 TIME</b><span>09:00 – 17:00</span></div>
       <div class="fact"><b>地點 VENUE</b><span>GO PARK Sports 匹克球場（西沙）</span></div>
-      <div class="fact"><b>名額 SLOTS</b><span>48 隊 <small id="slotsLeft" style="color:var(--lime);font-weight:700"></small></span></div>
+      <div class="fact"><b>名額 SLOTS</b><span>48 隊</span></div>
       <div class="fact"><b>費用 FEE</b><span>全免 Free</span></div>
       <div class="fact"><b>每隊 PER TEAM</b><span>3男3女 – 5男5女</span></div>
       <div class="fact"><b>年齡 AGE</b><span>16 – 39 歲</span></div>
@@ -105,7 +105,7 @@
     <input type="hidden" name="form-name" value="gopark-pickleball-registration">
     <p class="hidden"><label>Don't fill this out: <input name="bot-field"></label></p>
 
-    <div class="summary-err" id="fullBanner" style="font-size:15px"><strong>報名已滿 Registration is full.</strong> 48 隊名額已滿，多謝支持！All 48 slots have been taken — thank you!</div>
+    <div class="summary-err" id="fullBanner" style="font-size:15px"><strong>報名已滿 Registration is full.</strong> 報名已截止，多謝支持！Registration is now closed — thank you!</div>
     <div class="summary-err" id="summaryErr"></div>
 
     <!-- Team -->
@@ -295,7 +295,7 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
         const r = await fetch(SHEET_URL, { method:'POST', body: JSON.stringify(data) });
         const res = await r.json();
         if (!res.ok) {
-          if (res.error === 'full') { showFull(); return showProblem('<strong>報名已滿 Registration is full.</strong><br>48 隊名額已滿，多謝支持！All 48 slots have been taken.'); }
+          if (res.error === 'full') { showFull(); return showProblem('<strong>報名已滿 Registration is full.</strong><br>報名已截止，多謝支持！Registration is now closed.'); }
           if (res.error === 'duplicate_team') { document.getElementById('team_name').classList.add('bad'); return showProblem('<strong>此隊名已報名 This team name is already registered.</strong><br>如需更改資料，請聯絡大會。To change details, please contact the organiser.'); }
           if (res.error === 'age') return showProblem('<strong>隊員年齡須為 16–39 歲 All players must be aged 16–39.</strong>');
           return showProblem('<strong>提交失敗，請再試一次。Submission failed — please try again.</strong>');
@@ -322,7 +322,6 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
   if (SHEET_URL) {
     fetch(SHEET_URL).then(r=>r.json()).then(res=>{
       if (!res || !res.ok) return;
-      document.getElementById('slotsLeft').textContent = res.remaining > 0 ? `尚餘 ${res.remaining} 隊` : '已滿 Full';
       if (res.remaining <= 0) showFull();
     }).catch(()=>{});
   }
