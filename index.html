@@ -36,7 +36,8 @@
   input:focus{outline:none;border-color:var(--navy);box-shadow:0 0 0 3px rgba(182,255,0,.45)}
   input.bad{border-color:var(--err)}
   .row{display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:end}
-  .row label.f{white-space:nowrap}
+  .row > div{min-width:0}
+  .row > div:last-child label.f{white-space:nowrap}
   .player{border-top:1px dashed var(--line);padding-top:4px;margin-top:6px}
   .player:first-of-type{border-top:0}
   .plabel{font-weight:700;font-size:14px;margin:12px 0 6px;color:var(--navy);display:flex;gap:8px;align-items:center}
@@ -118,15 +119,15 @@
       <input type="text" id="contact_name" name="contact_name" maxlength="60" required autocomplete="name">
       <div class="err"></div>
 
-      <label class="f" for="contact_whatsapp">聯絡人 WhatsApp <small>e.g. 9123 4567</small> <span class="req">*</span></label>
-      <input type="tel" id="contact_whatsapp" name="contact_whatsapp" maxlength="20" required inputmode="tel" autocomplete="tel">
+      <label class="f" for="contact_whatsapp">聯絡人 WhatsApp <small>香港手機號碼 8 位 HK mobile, e.g. 9123 4567</small> <span class="req">*</span></label>
+      <input type="tel" id="contact_whatsapp" name="contact_whatsapp" maxlength="16" required inputmode="tel" autocomplete="tel" placeholder="9123 4567">
       <div class="err"></div>
     </div>
 
     <!-- Men -->
     <div class="card" data-group="m">
       <h2>男隊員 <span class="en">Men</span><span class="count" id="mCount">0 / 5</span></h2>
-      <p class="hint">最少 3 位，最多 5 位。請填寫姓名及出生年份。<br>Min 3, max 5 — name and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
+      <p class="hint">最少 3 位，最多 5 位。請填寫身份證姓名及出生年份。<br>Min 3, max 5 — full name as on HKID and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
       <div id="mReq"></div>
       <details class="opt" id="mOpt"><summary>＋ 男隊員 #4、#5（選填 Optional）</summary><div id="mOptBody"></div></details>
     </div>
@@ -134,7 +135,7 @@
     <!-- Women -->
     <div class="card" data-group="f">
       <h2>女隊員 <span class="en">Women</span><span class="count" id="fCount">0 / 5</span></h2>
-      <p class="hint">最少 3 位，最多 5 位。請填寫姓名及出生年份。<br>Min 3, max 5 — name and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
+      <p class="hint">最少 3 位，最多 5 位。請填寫身份證姓名及出生年份。<br>Min 3, max 5 — full name as on HKID and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
       <div id="fReq"></div>
       <details class="opt" id="fOpt"><summary>＋ 女隊員 #4、#5（選填 Optional）</summary><div id="fOptBody"></div></details>
     </div>
@@ -182,9 +183,9 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
     d.innerHTML =
       `<div class="plabel">${label} <span style="font-weight:500;color:var(--muted)">${en}</span> ${pill}</div>
        <div class="row">
-         <div><label class="f" style="margin-top:0" for="${g}${n}_name">姓名 <small>Name</small>${star}</label>
-           <input type="text" id="${g}${n}_name" name="${g==='m'?'male':'female'}_${n}_name" maxlength="60" autocomplete="off"></div>
-         <div><label class="f" style="margin-top:0" for="${g}${n}_year">出生年份 <small>Year</small>${star}</label>
+         <div><label class="f" style="margin-top:0" for="${g}${n}_name">姓名（與身份證相同）<br><small>Full name as on HKID</small>${star}</label>
+           <input type="text" id="${g}${n}_name" name="${g==='m'?'male':'female'}_${n}_name" maxlength="60" autocomplete="off" placeholder="陳大文 / CHAN Tai Man"></div>
+         <div><label class="f" style="margin-top:0" for="${g}${n}_year">出生年份<br><small>Year</small>${star}</label>
            <input type="number" id="${g}${n}_year" name="${g==='m'?'male':'female'}_${n}_birth_year" inputmode="numeric" min="${MIN_YEAR}" max="${MAX_YEAR}" placeholder="如 1998"></div>
        </div>
        <div class="err"></div>`;
@@ -229,8 +230,9 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
     });
     const wa = document.getElementById('contact_whatsapp');
     const digits = wa.value.replace(/[^\d]/g,'');
-    const okWa = /^(852)?[4-9]\d{7}$/.test(digits) || /^\d{8,15}$/.test(digits);
-    if(!okWa){ wa.classList.add('bad'); const m='請填寫有效 WhatsApp 號碼 Valid WhatsApp number required'; setErr(wa,m); problems.push(m); }
+    const hk = digits.length === 11 && digits.startsWith('852') ? digits.slice(3) : digits;
+    const okWa = /^[4-9]\d{7}$/.test(hk);
+    if(!okWa){ wa.classList.add('bad'); const m='請填寫有效香港手機號碼（8 位，以 4–9 開頭） Enter a valid 8-digit HK mobile number'; setErr(wa,m); problems.push(m); }
 
     // Players
     const names = [];
@@ -268,7 +270,8 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
       return;
     }
     summary.style.display = 'none';
-    wa.value = digits.length === 8 ? '+852 ' + digits.slice(0,4) + ' ' + digits.slice(4) : '+' + digits;
+    const hk8 = digits.length === 11 ? digits.slice(3) : digits;
+    wa.value = '+852 ' + hk8.slice(0,4) + ' ' + hk8.slice(4);
     e.preventDefault();
     sendRegistration();
   });
