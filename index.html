@@ -37,6 +37,10 @@
   input.bad{border-color:var(--err)}
   .row{display:grid;grid-template-columns:1fr 140px;gap:10px;align-items:end}
   .row > div{min-width:0}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+  .row2 > div{min-width:0}
+  .row2 label.f{white-space:nowrap}
+  input.hkid{text-transform:uppercase;letter-spacing:.08em}
   .row > div:last-child label.f{white-space:nowrap}
   .player{border-top:1px dashed var(--line);padding-top:4px;margin-top:6px}
   .player:first-of-type{border-top:0}
@@ -91,12 +95,12 @@
   <!-- Static copy so Netlify's build-time form detection registers every field (player fields are rendered by JS). -->
   <form name="gopark-pickleball-registration" data-netlify="true" netlify-honeypot="bot-field" hidden>
     <input name="bot-field"><input name="team_name"><input name="contact_name"><input name="contact_whatsapp">
-    <input name="male_1_name"><input name="male_1_birth_year"><input name="male_2_name"><input name="male_2_birth_year">
-    <input name="male_3_name"><input name="male_3_birth_year"><input name="male_4_name"><input name="male_4_birth_year">
-    <input name="male_5_name"><input name="male_5_birth_year">
-    <input name="female_1_name"><input name="female_1_birth_year"><input name="female_2_name"><input name="female_2_birth_year">
-    <input name="female_3_name"><input name="female_3_birth_year"><input name="female_4_name"><input name="female_4_birth_year">
-    <input name="female_5_name"><input name="female_5_birth_year">
+    <input name="male_1_name"><input name="male_1_hkid"><input name="male_1_birth_year"><input name="male_2_name"><input name="male_2_hkid"><input name="male_2_birth_year">
+    <input name="male_3_name"><input name="male_3_hkid"><input name="male_3_birth_year"><input name="male_4_name"><input name="male_4_hkid"><input name="male_4_birth_year">
+    <input name="male_5_name"><input name="male_5_hkid"><input name="male_5_birth_year">
+    <input name="female_1_name"><input name="female_1_hkid"><input name="female_1_birth_year"><input name="female_2_name"><input name="female_2_hkid"><input name="female_2_birth_year">
+    <input name="female_3_name"><input name="female_3_hkid"><input name="female_3_birth_year"><input name="female_4_name"><input name="female_4_hkid"><input name="female_4_birth_year">
+    <input name="female_5_name"><input name="female_5_hkid"><input name="female_5_birth_year">
     <input type="checkbox" name="declaration_1_health"><input type="checkbox" name="declaration_2_medical">
     <input type="checkbox" name="declaration_3_waiver_gopark"><input type="checkbox" name="declaration_4_waiver_event">
   </form>
@@ -127,7 +131,7 @@
     <!-- Men -->
     <div class="card" data-group="m">
       <h2>男隊員 <span class="en">Men</span><span class="count" id="mCount">0 / 5</span></h2>
-      <p class="hint">最少 3 位，最多 5 位。請填寫身份證姓名及出生年份。<br>Min 3, max 5 — full name as on HKID and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
+      <p class="hint">最少 3 位，最多 5 位。請填寫身份證姓名、身份證首字母及頭 3 位數字、出生年份。<br>Min 3, max 5 — full name as on HKID, HKID letter(s) + first 3 digits, and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
       <div id="mReq"></div>
       <details class="opt" id="mOpt"><summary>＋ 男隊員 #4、#5（選填 Optional）</summary><div id="mOptBody"></div></details>
     </div>
@@ -135,7 +139,7 @@
     <!-- Women -->
     <div class="card" data-group="f">
       <h2>女隊員 <span class="en">Women</span><span class="count" id="fCount">0 / 5</span></h2>
-      <p class="hint">最少 3 位，最多 5 位。請填寫身份證姓名及出生年份。<br>Min 3, max 5 — full name as on HKID and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
+      <p class="hint">最少 3 位，最多 5 位。請填寫身份證姓名、身份證首字母及頭 3 位數字、出生年份。<br>Min 3, max 5 — full name as on HKID, HKID letter(s) + first 3 digits, and year of birth. 年齡須為 16–39 歲 Age 16–39.</p>
       <div id="fReq"></div>
       <details class="opt" id="fOpt"><summary>＋ 女隊員 #4、#5（選填 Optional）</summary><div id="fOptBody"></div></details>
     </div>
@@ -177,16 +181,19 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
     const en = (g==='m' ? 'Man' : 'Woman') + ' #' + n;
     const star = required ? ' <span class="req">*</span>' : '';
     const pill = required ? '<span class="pill r">必填 Required</span>' : '<span class="pill">選填 Optional</span>';
+    const G = g==='m' ? 'male' : 'female';
     const d = document.createElement('div');
     d.className = 'player';
     d.dataset.g = g; d.dataset.req = required ? '1' : '0';
     d.innerHTML =
       `<div class="plabel">${label} <span style="font-weight:500;color:var(--muted)">${en}</span> ${pill}</div>
-       <div class="row">
-         <div><label class="f" style="margin-top:0" for="${g}${n}_name">姓名（與身份證相同）<br><small>Full name as on HKID</small>${star}</label>
-           <input type="text" id="${g}${n}_name" name="${g==='m'?'male':'female'}_${n}_name" maxlength="60" autocomplete="off" placeholder="陳大文 / CHAN Tai Man"></div>
-         <div><label class="f" style="margin-top:0" for="${g}${n}_year">出生年份<br><small>Year</small>${star}</label>
-           <input type="number" id="${g}${n}_year" name="${g==='m'?'male':'female'}_${n}_birth_year" inputmode="numeric" min="${MIN_YEAR}" max="${MAX_YEAR}" placeholder="如 1998"></div>
+       <label class="f" style="margin-top:0" for="${g}${n}_name">姓名（與身份證相同）<small>Full name as on HKID</small>${star}</label>
+       <input type="text" id="${g}${n}_name" name="${G}_${n}_name" maxlength="60" autocomplete="off" placeholder="陳大文 / CHAN Tai Man">
+       <div class="row2">
+         <div><label class="f" for="${g}${n}_hkid">身份證號碼<br><small>字母＋頭 3 位 HKID</small>${star}</label>
+           <input type="text" id="${g}${n}_hkid" name="${G}_${n}_hkid" maxlength="5" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="如 A123" class="hkid"></div>
+         <div><label class="f" for="${g}${n}_year">出生年份<br><small>Year of birth</small>${star}</label>
+           <input type="number" id="${g}${n}_year" name="${G}_${n}_birth_year" inputmode="numeric" min="${MIN_YEAR}" max="${MAX_YEAR}" placeholder="如 1998"></div>
        </div>
        <div class="err"></div>`;
     return d;
@@ -237,19 +244,18 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
     // Players
     const names = [];
     document.querySelectorAll('.player').forEach(p=>{
-      const [nm, yr] = p.querySelectorAll('input');
+      const [nm, hk, yr] = p.querySelectorAll('input');
       const req = p.dataset.req === '1';
-      const n = nm.value.trim(), y = yr.value.trim();
+      hk.value = hk.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+      const n = nm.value.trim(), h = hk.value, y = yr.value.trim();
       const label = p.querySelector('.plabel').childNodes[0].textContent.trim();
-      if(!req && !n && !y) return;
-      if(!n){ nm.classList.add('bad'); p.querySelector('.err').textContent='請填寫姓名 Name required'; problems.push(label+'：姓名'); if(!req) p.closest('details').open = true; }
+      if(!req && !n && !h && !y) return;
+      const msgs = [];
+      if(!n){ nm.classList.add('bad'); msgs.push('請填寫姓名 Name required'); problems.push(label+'：姓名'); }
+      if(!/^[A-Z]{1,2}[0-9]{3}$/.test(h)){ hk.classList.add('bad'); msgs.push('身份證格式如 A123 或 AB123 HKID format e.g. A123'); problems.push(label+'：身份證'); }
       const yi = parseInt(y,10);
-      if(!y || isNaN(yi) || yi < MIN_YEAR || yi > MAX_YEAR){
-        yr.classList.add('bad');
-        p.querySelector('.err').textContent = (n ? '' : '請填寫姓名 Name required；') + `出生年份須為 ${MIN_YEAR}–${MAX_YEAR}（16–39 歲） Birth year must be ${MIN_YEAR}–${MAX_YEAR}`;
-        problems.push(label+'：出生年份');
-        if(!req) p.closest('details').open = true;
-      }
+      if(!y || isNaN(yi) || yi < MIN_YEAR || yi > MAX_YEAR){ yr.classList.add('bad'); msgs.push(`出生年份須為 ${MIN_YEAR}–${MAX_YEAR}（16–39 歲） Birth year must be ${MIN_YEAR}–${MAX_YEAR}`); problems.push(label+'：出生年份'); }
+      if(msgs.length){ p.querySelector('.err').textContent = msgs.join('；'); if(!req) p.closest('details').open = true; }
       if(n) names.push(n.toLowerCase().replace(/\s+/g,' '));
     });
     const dup = names.filter((x,i)=>names.indexOf(x)!==i);
@@ -297,6 +303,7 @@ const SHEET_URL = "https://script.google.com/macros/s/AKfycbxuF6IWvgm5AxMR-Xhrwx
         if (!res.ok) {
           if (res.error === 'full') { showFull(); return showProblem('<strong>報名已滿 Registration is full.</strong><br>報名已截止，多謝支持！Registration is now closed.'); }
           if (res.error === 'duplicate_team') { document.getElementById('team_name').classList.add('bad'); return showProblem('<strong>此隊名已報名 This team name is already registered.</strong><br>如需更改資料，請聯絡大會。To change details, please contact the organiser.'); }
+          if (res.error === 'hkid') return showProblem('<strong>身份證格式不正確 Invalid HKID format.</strong> 請填寫首字母及頭 3 位數字，如 A123。');
           if (res.error === 'age') return showProblem('<strong>隊員年齡須為 16–39 歲 All players must be aged 16–39.</strong>');
           return showProblem('<strong>提交失敗，請再試一次。Submission failed — please try again.</strong>');
         }
